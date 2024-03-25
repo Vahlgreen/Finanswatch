@@ -138,7 +138,7 @@ def main():
     pwCombos = list(itertools.combinations(numbers, 8))
     fwPassword = "".join(random.sample(pwCombos, 1)[0])
 
-    #Start Trial. Retry once on error
+    #Start Trial. Retry once (with new email) on error
     try:
         StartTrial(fwEmail, fwPassword)
         subject = "Nyt login til Finanswatch!"
@@ -146,6 +146,7 @@ def main():
         SendEmail(subject, body)
     except Exception as e:
         try:
+            fwEmail = "".join(random.sample(emailCombos, 1)[0]) + '@gmail.com'
             StartTrial(fwEmail, fwPassword)
             subject = "Nyt login til Finanswatch!"
             body = f"Dit nye login kommer her \n brugernavn: {fwEmail}\n adgangskode: {fwPassword} \n\n\n Github repo: https://github.com/Vahlgreen/Finanswatch"
