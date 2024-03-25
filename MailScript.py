@@ -12,7 +12,15 @@ from selenium.webdriver.chrome.service import Service as ChromeService
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.common.exceptions import StaleElementReferenceException, NoSuchElementException
 
-def SendEmail(subject, body, sender, recipients, pw):
+
+def SendEmail(subject, body):
+
+    with open("credentials.txt") as f:
+        lines = f.readlines()
+        sender = lines[0].strip()
+        recipients = list(lines[1].strip().split(","))
+        pw = lines[2].strip()
+
     msg = MIMEText(body)
     msg["Subject"] = subject
     msg["Body"] = body
@@ -130,22 +138,24 @@ def main():
     pwCombos = list(itertools.combinations(numbers, 8))
     fwPassword = "".join(random.sample(pwCombos, 1)[0])
 
+    #Start Trial. Retry once on error
     try:
         StartTrial(fwEmail, fwPassword)
-    except NoSuchElementException:
-        #in case mail was already taken, or something else went wrong
-        StartTrial(fwEmail, fwPassword)
+        subject = "Nyt login til Finanswatch!"
+        body = f"Dit nye login kommer her \n brugernavn: {fwEmail}\n adgangskode: {fwPassword} \n\n\n Github repo: https://github.com/Vahlgreen/Finanswatch"
+        SendEmail(subject, body)
+    except Exception as e:
+        try:
+            StartTrial(fwEmail, fwPassword)
+            subject = "Nyt login til Finanswatch!"
+            body = f"Dit nye login kommer her \n brugernavn: {fwEmail}\n adgangskode: {fwPassword} \n\n\n Github repo: https://github.com/Vahlgreen/Finanswatch"
+            SendEmail(subject, body)
+        except Exception as e:
+            subject = "Fejl rapport: Finanswatch script"
+            body = f"Efter to forsøg lykkedes det ikke at oprette en prøveperiode. Fejl: {e}"
+            SendEmail(subject, body)
 
-    subject = "Nyt login til Finanswatch!"
-    body = f"Dit nye login kommer her \n brugernavn: {fwEmail}\n adgangskode: {fwPassword} \n\n\n Github repo: https://github.com/Vahlgreen/Finanswatch"
 
-    with open("credentials.txt") as f:
-        lines = f.readlines()
-        sender = lines[0].strip()
-        recipients = list(lines[1].strip().split(","))
-        pw = lines[2].strip()
-
-    SendEmail(subject, body, sender, recipients, pw)
 
 
 main()
