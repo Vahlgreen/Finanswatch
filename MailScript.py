@@ -11,11 +11,16 @@ from faker import Faker
 from selenium.webdriver.chrome.service import Service as ChromeService
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.common.exceptions import StaleElementReferenceException, NoSuchElementException
-
+import datetime
+import os
 
 def SendEmail(subject, body):
+    #Find directory (explicitly, to avoid issues on pe server)
+    script_directory = os.path.dirname(os.path.abspath(__file__))
+    data_file = os.path.join(script_directory, "credentials.txt")
 
-    with open("credentials.txt") as f:
+    #open credentials
+    with open(data_file) as f:
         lines = f.readlines()
         sender = lines[0].strip()
         recipients = list(lines[1].strip().split(","))
@@ -27,6 +32,7 @@ def SendEmail(subject, body):
     msg["sender"] = sender
     msg["To"] = ", ".join(recipients)
 
+    #establish connection to smtp and send email
     with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp_server:
         print("Connecting to server..")
         smtp_server.login(sender, pw)
@@ -132,13 +138,15 @@ def main():
                "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "-", "!", "?"]
     numbers = [str(num) for num in range(1, 11)]
 
-
+    #Generate email
     emailCombos = list(itertools.combinations(symbols, 20))
     fwEmail = "".join(random.sample(emailCombos, 1)[0]) + '@gmail.com'
+
+    #Generate password
     pwCombos = list(itertools.combinations(numbers, 8))
     fwPassword = "".join(random.sample(pwCombos, 1)[0])
 
-    #Start Trial. Retry once (with new email) on error
+    #Start Trial and send the credentials. Retry once (with new email) on error
     try:
         StartTrial(fwEmail, fwPassword)
         subject = "Nyt login til Finanswatch!"
@@ -158,5 +166,7 @@ def main():
 
 
 
-
-main()
+today = datetime.date.today()
+weekday = today.weekday()
+if weekday == 0:
+    main()
