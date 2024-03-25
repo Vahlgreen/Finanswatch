@@ -8,6 +8,10 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 import time
 from faker import Faker
+from selenium.webdriver.chrome.service import Service as ChromeService
+from webdriver_manager.chrome import ChromeDriverManager
+
+
 
 def SendEmail(subject,body,sender,recipients,pw):
     msg = MIMEText(body)
@@ -28,12 +32,16 @@ def StartTrial(mail,pw):
     url = "https://finanswatch.dk/profile/create?redirectUrl=https%3A%2F%2Flogin.watchmedier.dk%2Fauth%2Frealms%2Fwatchmedier%2Fprotocol%2Fopenid-connect%2Fauth%3Fsite%3Dfinanswatch.dk%26ui_locales%3Dda%26scope%3Dopenid%2Bprofile%2Bemail%26response_type%3Dcode%26redirect_uri%3Dhttps%253A%252F%252Ffinanswatch.dk%252Fauth%252Fcallback%253Fclient_name%253DKeycloakOidcClient_finanswatch.dk%26state%3Dc679a4b46c%26code_challenge_method%3DS256%26client_id%3Dwatch%26code_challenge%3DzVSfzKCs98mpivvxmfNqw8A7FrrdTo2wIEbITt0zmag"
 
     #initiate browser
-    options = webdriver.EdgeOptions()
-    options.add_argument("--headless=new")
-    driver = webdriver.Edge(options=options)
-    #driver.implicitly_wait(2) #Time.sleep virker bedre
-    #driver = webdriver.Edge()
 
+    #NEDENSTÅENDE VIRKER, MEN IKKE PÅ PE SERVER
+    #options = webdriver.EdgeOptions()
+    #options.add_argument("--headless=new")
+    #driver = webdriver.Edge(options=options)
+    #driver.implicitly_wait(2) #Time.sleep virker bedre
+
+    chrome_options = webdriver.ChromeOptions()
+    #chrome_options.add_argument("--headless")
+    driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()),options=chrome_options)
 
     #open browser
     driver.get(url)
@@ -116,7 +124,7 @@ def main():
         pw = lines[2].strip()
 
 
-    SendEmail(subject,body,sender,recipients,pw)
+    #SendEmail(subject,body,sender,recipients,pw)
 
 
 main()
