@@ -14,12 +14,13 @@ from selenium.common.exceptions import StaleElementReferenceException, NoSuchEle
 import datetime
 import os
 
+
 def SendEmail(subject, body):
-    #Find directory (explicitly, to avoid issues on pe server)
+    # Find directory (explicitly, to avoid issues on pe server)
     script_directory = os.path.dirname(os.path.abspath(__file__))
     data_file = os.path.join(script_directory, "credentials.txt")
 
-    #open credentials
+    # open credentials
     with open(data_file) as f:
         lines = f.readlines()
         sender = lines[0].strip()
@@ -32,7 +33,7 @@ def SendEmail(subject, body):
     msg["sender"] = sender
     msg["To"] = ", ".join(recipients)
 
-    #establish connection to smtp and send email
+    # establish connection to smtp and send email
     with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp_server:
         print("Connecting to server..")
         smtp_server.login(sender, pw)
@@ -49,24 +50,24 @@ def StartTrial(mail, pw):
     # driver.implicitly_wait(2) #Time.sleep virker bedre
 
     # chrome, works locally
-    # chrome_options = webdriver.ChromeOptions()
+    chrome_options = webdriver.ChromeOptions()
     # chrome_options.add_argument("--headless")
-    # driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()),options=chrome_options)
+    driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=chrome_options)
 
     # chrome, works on PE server
-    chrome_options = webdriver.ChromeOptions()
-    chrome_options.add_argument("--no-sandbox")
-    chrome_options.add_argument("--headless")
-    chrome_options.add_argument("--disable-gpu")
-    driver = webdriver.Chrome(options=chrome_options)
-
+    # chrome_options = webdriver.ChromeOptions()
+    # chrome_options.add_argument("--no-sandbox")
+    # chrome_options.add_argument("--headless")
+    # chrome_options.add_argument("--disable-gpu")
+    # driver = webdriver.Chrome(options=chrome_options)
+    # driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=chrome_options)
     # create account url
     url = "https://finanswatch.dk/profile/create?redirectUrl=https%3A%2F%2Flogin.watchmedier.dk%2Fauth%2Frealms%2Fwatchmedier%2Fprotocol%2Fopenid-connect%2Fauth%3Fsite%3Dfinanswatch.dk%26ui_locales%3Dda%26scope%3Dopenid%2Bprofile%2Bemail%26response_type%3Dcode%26redirect_uri%3Dhttps%253A%252F%252Ffinanswatch.dk%252Fauth%252Fcallback%253Fclient_name%253DKeycloakOidcClient_finanswatch.dk%26state%3Dc679a4b46c%26code_challenge_method%3DS256%26client_id%3Dwatch%26code_challenge%3DzVSfzKCs98mpivvxmfNqw8A7FrrdTo2wIEbITt0zmag"
 
     # open browser
     driver.get(url)
 
-    # implicitly wait function seems to crash
+    # implicitly wait function seems to crash. Use sleep instead
     time.sleep(1)
 
     # check for cookies
@@ -75,22 +76,22 @@ def StartTrial(mail, pw):
     except:
         print("No cookies found. Script continues..")
 
-    #Faker object for name generation
+    # Faker object for name generation
     fake = Faker()
     fakeName = fake.name().split(" ")
 
-    #interacting with registration formula
+    # interacting with registration formula
     # username
-    driver.find_element(By.XPATH, '// *[ @ id = ":R59clnlttbq5la:"]').send_keys(mail)
+    driver.find_element(By.XPATH, '//*[@id=":R59clnlttbq6la:"]').send_keys(mail)
     time.sleep(1)
     # password
-    driver.find_element(By.XPATH, '//*[@id=":R1aclnlttbq5la:"]').send_keys(pw)
+    driver.find_element(By.XPATH, '//*[@id=":R1aclnlttbq6la:"]').send_keys(pw)
     time.sleep(1)
     # firstname
-    driver.find_element(By.XPATH, '//*[@id=":R1bclnlttbq5la:"]').send_keys(fakeName[0])
+    driver.find_element(By.XPATH, '//*[@id=":R1bclnlttbq6la:"]').send_keys(fakeName[0])
     time.sleep(1)
     # lastname
-    driver.find_element(By.XPATH, '//*[@id=":R1cclnlttbq5la:"]').send_keys(" ".join(fakeName[1:]))
+    driver.find_element(By.XPATH, '//*[@id=":R1cclnlttbq6la:"]').send_keys(" ".join(fakeName[1:]))
     time.sleep(1)
     # accept terms
     driver.find_element(By.XPATH, '//*[@id="createUserAcceptTerms"]').click()
@@ -122,31 +123,35 @@ def StartTrial(mail, pw):
     except:
         print("No cookies found. Script continues..")
 
-    time.sleep(1)
+    time.sleep(5)
     # start trial
-    driver.find_element(By.XPATH, '//*[@id="__next"]/div/div/div[2]/div[1]/div/main/div/div/article[1]/div[5]/div/div/article/ul/li[1]/button').click()
-
+    driver.find_element(By.XPATH,
+                        '/html/body/div[1]/div/div[2]/div[1]/div/main/div/div/article[1]/div[5]/div/div/article/ul/li[1]/button').click()
+    time.sleep(10)
     driver.quit()
 
-
 def main():
-    #test symbols
-    #symbols = ["a", "d", "e", "f", ".", "g", "h", "i", "j", "k", "l", "m", "n",
-    #           "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y"]
-    # prod symbols
-    symbols = ["b", "c", "d", "e", "f", ".", "g", "h", "i", "j", "k", "l", "m", "n",
-               "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "-", "!", "?"]
-    numbers = [str(num) for num in range(1, 11)]
+    validSymbols = 'abcdefghijklmnopqrstuvwxyz1234567890'
+    length = random.randint(8, 15)
+    login = ''
+    for i in range(length):
+        pos = random.randint(0, len(validSymbols) - 1)
+        login = login + validSymbols[pos]
 
-    #Generate email
-    emailCombos = list(itertools.combinations(symbols, 20))
-    fwEmail = "".join(random.sample(emailCombos, 1)[0]) + '@gmail.com'
+    # Don't start with numeric
+    if login[0].isnumeric():
+        pos = random.randint(0, len(validSymbols) - 10)
+        login = validSymbols[pos] + login
 
-    #Generate password
-    pwCombos = list(itertools.combinations(numbers, 8))
-    fwPassword = "".join(random.sample(pwCombos, 1)[0])
+    # Generate email
+    fwEmail = login + '@gmail.com'
 
-    #Start Trial and send the credentials. Retry once (with new email) on error
+    # Generate password
+    fwPassword = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]
+    random.shuffle(fwPassword)
+    fwPassword = "".join(fwPassword)
+
+    # Start Trial and send the credentials. Retry once on error
     try:
         StartTrial(fwEmail, fwPassword)
         subject = "Nyt login til Finanswatch!"
@@ -154,7 +159,6 @@ def main():
         SendEmail(subject, body)
     except Exception as e:
         try:
-            fwEmail = "".join(random.sample(emailCombos, 1)[0]) + '@gmail.com'
             StartTrial(fwEmail, fwPassword)
             subject = "Nyt login til Finanswatch!"
             body = f"Dit nye login kommer her \n brugernavn: {fwEmail}\n adgangskode: {fwPassword} \n\n\n Github repo: https://github.com/Vahlgreen/Finanswatch"
@@ -165,8 +169,7 @@ def main():
             SendEmail(subject, body)
 
 
-
-today = datetime.date.today()
-weekday = today.weekday()
-if weekday == 0:
-    main()
+# today = datetime.date.today()
+# weekday = today.weekday()
+# if weekday == 0:
+main()
