@@ -51,7 +51,7 @@ def StartTrial(mail, pw):
 
     # chrome, works locally
     chrome_options = webdriver.ChromeOptions()
-    # chrome_options.add_argument("--headless")
+    #chrome_options.add_argument("--headless")
     driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=chrome_options)
 
     # chrome, works on PE server
@@ -125,8 +125,8 @@ def StartTrial(mail, pw):
 
     time.sleep(5)
     # start trial
-    driver.find_element(By.XPATH,
-                        '/html/body/div[1]/div/div[2]/div[1]/div/main/div/div/article[1]/div[5]/div/div/article/ul/li[1]/button').click()
+    driver.find_element(By.XPATH,"/html/body/div[1]/div/div[2]/div[1]/div/main/div/div/article[1]/div[5]/div/div/article/div/ul/li[1]/button").click()
+
     time.sleep(10)
     driver.quit()
 
