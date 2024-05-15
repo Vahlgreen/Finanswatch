@@ -15,7 +15,7 @@ import datetime
 import os
 
 
-def SendEmail(subject, body):
+def SendEmail(subject, body, error = False):
     # Find directory (explicitly, to avoid issues on pe server)
     script_directory = os.path.dirname(os.path.abspath(__file__))
     data_file = os.path.join(script_directory, "credentials.txt")
@@ -24,8 +24,13 @@ def SendEmail(subject, body):
     with open(data_file) as f:
         lines = f.readlines()
         sender = lines[0].strip()
-        recipients = list(lines[1].strip().split(","))
-        pw = lines[2].strip()
+        if error == False:
+            recipients = list(lines[1].strip().split(","))
+        else:
+            recipients = list(lines[2].strip().split(","))
+        pw = lines[3].strip()
+
+
 
     msg = MIMEText(body)
     msg["Subject"] = subject
@@ -82,16 +87,16 @@ def StartTrial(mail, pw):
 
     # interacting with registration formula
     # username
-    driver.find_element(By.XPATH, '//*[@id=":R59clnlttbq6la:"]').send_keys(mail)
+    driver.find_element(By.XPATH, '/html/body/div[3]/div/main/div/div/div/div/form/div[1]/div/input').send_keys(mail)
     time.sleep(1)
     # password
-    driver.find_element(By.XPATH, '//*[@id=":R1aclnlttbq6la:"]').send_keys(pw)
+    driver.find_element(By.XPATH, '//*[@id=":R59imfjtt7qmja:"]').send_keys(pw)
     time.sleep(1)
     # firstname
-    driver.find_element(By.XPATH, '//*[@id=":R1bclnlttbq6la:"]').send_keys(fakeName[0])
+    driver.find_element(By.XPATH, '/html/body/div[3]/div/main/div/div/div/div/form/div[3]/input').send_keys(fakeName[0])
     time.sleep(1)
     # lastname
-    driver.find_element(By.XPATH, '//*[@id=":R1cclnlttbq6la:"]').send_keys(" ".join(fakeName[1:]))
+    driver.find_element(By.XPATH, '//*[@id=":R5himfjtt7qmja:"]').send_keys(" ".join(fakeName[1:]))
     time.sleep(1)
     # accept terms
     driver.find_element(By.XPATH, '//*[@id="createUserAcceptTerms"]').click()
@@ -125,12 +130,19 @@ def StartTrial(mail, pw):
 
     time.sleep(5)
     # start trial
-    driver.find_element(By.XPATH,"/html/body/div[1]/div/div[2]/div[1]/div/main/div/div/article[1]/div[5]/div/div/article/div/ul/li[1]/button").click()
-
+    try:
+        driver.find_element(By.XPATH,"/html/body/div[1]/div/div[2]/div[1]/div/main/div/div/article[1]/div[5]/div/div/article/div/ul/li[1]/button").click()
+    except Exception as e:
+        pass
     time.sleep(10)
     driver.quit()
 
-def main():
+def create_password() -> str:
+    validSymbols = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]
+    random.shuffle(validSymbols)
+    return "".join(validSymbols)
+
+def create_email() -> str:
     validSymbols = 'abcdefghijklmnopqrstuvwxyz1234567890'
     length = random.randint(8, 15)
     login = ''
@@ -143,13 +155,16 @@ def main():
         pos = random.randint(0, len(validSymbols) - 10)
         login = validSymbols[pos] + login
 
+    return login + '@gmail.com'
+
+def main():
+
     # Generate email
-    fwEmail = login + '@gmail.com'
+    fwEmail = create_email()
 
     # Generate password
-    fwPassword = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]
-    random.shuffle(fwPassword)
-    fwPassword = "".join(fwPassword)
+    fwPassword = create_password()
+
 
     # Start Trial and send the credentials. Retry once on error
     try:
@@ -166,7 +181,7 @@ def main():
         except Exception as e:
             subject = "Fejl rapport: Finanswatch script"
             body = f"Efter to forsøg lykkedes det ikke at oprette en prøveperiode. Fejl: {e}"
-            SendEmail(subject, body)
+            SendEmail(subject, body, error=True)
 
 
 # today = datetime.date.today()
