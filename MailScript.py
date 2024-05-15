@@ -56,7 +56,7 @@ def StartTrial(mail, pw):
 
     # chrome, works locally
     chrome_options = webdriver.ChromeOptions()
-    #chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--headless")
     driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=chrome_options)
 
     # chrome, works on PE server
@@ -99,7 +99,12 @@ def StartTrial(mail, pw):
     driver.find_element(By.XPATH, '//*[@id=":R5himfjtt7qmja:"]').send_keys(" ".join(fakeName[1:]))
     time.sleep(1)
     # accept terms
-    driver.find_element(By.XPATH, '//*[@id="createUserAcceptTerms"]').click()
+    #element = driver.find_element_by_class_name('pagination-r')
+    #driver.execute_script("arguments[0].click();", element)
+    element = driver.find_element(By.ID, 'createUserAcceptTerms')
+    driver.execute_script("arguments[0].scrollIntoView();", element)
+    driver.execute_script("arguments[0].click();", element)
+
     time.sleep(1)
     # create account
     driver.find_element(By.XPATH, '/html/body/div[3]/div/main/div/div/div/div/form/button').click()
